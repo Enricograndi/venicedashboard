@@ -1,42 +1,21 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# # Import libraries
-
-# In[ ]:
-
-
-import pandas as pd
-import plotly.express as px 
 import dash
-
 # For interactive components like graphs, dropdowns, or date ranges.
-import dash_core_components as dcc 
-
-# For HTML tags
-import dash_html_components as html
-
-from dash.dependencies import Input, Output
-
+from dash import dcc
+#from dash.dependencies import Input, Output
 import pandas as pd
-
 # For graphics
 import plotly.express as px 
 import plotly.graph_objs as go
-
 import dash_bootstrap_components as dbc
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import html
 from dash.dependencies import Input, Output
 
+import plotly.express as px
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 
 # # Import data and cleaning
-
-# In[ ]:
-
 
 #import data
 df = pd.read_csv("Data/houses_venice_2.csv")
@@ -46,74 +25,72 @@ df = df.drop(columns=["Unnamed: 0"])
 df = df.dropna()
 df = df.reset_index(drop=True)
 
-
-# In[ ]:
-
-
+#Clean price data
 df["Price"] = df["Price"].str.replace('.','')
 df["Price"] = df["Price"].str.replace('€','')
 df["Price"] = df["Price"].str.split(' ', expand=True)[1].astype("float")
-
-
-# In[ ]:
-
-
+#clean size data
 df["Size"] = df["Size"].str.replace('m²','').astype("float")
+#clean floor data
 df["Floor"] = df["Floor"].str.split(' ',expand=True)[0]
+#clean room data
 df["Room"] = df["Room"].str.replace('+','').astype("float")
-
-
-# In[ ]:
-
-
+#Clean flor data
 df["Floor"] = df["Floor"].str.split(' ',expand=True)[0]
 df["Floor"] = df["Floor"].str.replace('R',"0")
 df["Floor"] = df["Floor"].str.replace('A',"0")
 df["Floor"] = df["Floor"].str.replace('S',"-1")
 df["Floor"] = df["Floor"].str.replace('T',"0").astype("float")
-
-
-# In[ ]:
-
-
+#reset index
 df = df.reset_index(drop=True)
+#calculate new variables
 df["Price/Size"] = df["Price"]/df["Size"]
 df["Price/Room"] = df["Price"]/df["Room"]
 df["Price/Floor"] = df["Price"]/df["Room"]
-
-
-# In[ ]:
-
-
+#calculate mean variables by zone
 df_zone = df.groupby("Zone").mean().reset_index()
+#count number of houses
 df_zone["Number_of_house"] = df.groupby("Zone").count().reset_index()["Name"]
-
-df_zone = df_zone.set_index("Zone")
-df_zone = df_zone.reset_index()
-
+#initialize zone variable for dropdown
 zones = df["Zone"].unique()
-
+df_zone = df_zone.reset_index()
+#initialize heatmap
 heatmap = px.imshow(df_zone.corr(),text_auto=True)
-heatmap
-
-scatter_price_size = px.scatter(df, x="Price", y="Size",color="Zone",
-                 log_x=True, size_max=60, trendline="ols")
-
+#initialize scatter plot
+scatter_price_size = px.scatter(df, x="Price", y="Size",color="Zone",log_x=True, size_max=60, trendline="ols")
+#initialize map
+venice_map = open("price_size.html").read()
+#initialize barchart
+barchart = px.bar(df_zone.sort_values("Price",ascending=False), x="Zone", y="Price")
 
 
 # # Dashboard
+#CSS
+TEXT_STYLE = {
+    'textAlign': 'center',
+    'color': '#191970'
+}
+SIDEBAR_STYLE = {
+    'position': 'fixed',
+    'top': 0,
+    'left': 0,
+    'bottom': 0,
+    'width': '20%',
+    'padding': '20px 10px',
+    'background-color': '#f8f9fa'
+}
 
-# In[ ]:
+CARD_TEXT_STYLE = {
+    'textAlign': 'center',
+    'color': '#0074D9'
+}
+CONTENT_STYLE = {
+    'margin-left': '25%',
+    'margin-right': '5%',
+    'padding': '20px 10p'
+}
 
-
-venice_map = open("price_size.html").read()
-barchart = px.bar(df_zone.sort_values("Price",ascending=False),
-                      x="Zone", y="Price")
-
-
-# In[ ]:
-
-
+#button and dropdwon
 controls = dbc.Row(
     [
         html.P('Dropdown', style={
@@ -144,24 +121,9 @@ controls = dbc.Row(
                 'margin': 'auto'
             }
         )])
-    ]
-)
+    ])
 
-TEXT_STYLE = {
-    'textAlign': 'center',
-    'color': '#191970'
-}
-SIDEBAR_STYLE = {
-    'position': 'fixed',
-    'top': 0,
-    'left': 0,
-    'bottom': 0,
-    'width': '20%',
-    'padding': '20px 10px',
-    'background-color': '#f8f9fa'
-}
-
-
+#sidebar with controls
 sidebar = html.Div(
     [
         html.H2('Parameters', style=TEXT_STYLE),
@@ -171,15 +133,7 @@ sidebar = html.Div(
     style=SIDEBAR_STYLE,
 )
 
-
-# In[ ]:
-
-
-CARD_TEXT_STYLE = {
-    'textAlign': 'center',
-    'color': '#0074D9'
-}
-
+#first row --> text
 content_first_row = dbc.Row([
     dbc.Col(
         dbc.Card(
@@ -216,25 +170,14 @@ content_first_row = dbc.Row([
 ])
 
 
-# In[ ]:
-
-
-
-
-# In[ ]:
-
-
+#second row -->tables
 content_second_row = dbc.Row(
     [
                 html.Div(id='statistic_table_zone',className="md-6 col-6"),
                 dbc.Table.from_dataframe(df_zone[["Zone","Price","Size"]], id="size_price_table_zone", striped=True, bordered=True, hover=True,responsive="md-6 col-6"),
-
-                
-
-
     ], id="table_row"
 )
-
+#third row --> scatter plot and map
 content_third_row = dbc.Row(
     [
         dbc.Col(
@@ -247,7 +190,7 @@ content_third_row = dbc.Row(
         )
     ], id="grapg_row_1"
 )
-
+#fourth row --> heatmap and barchart
 content_fourth_row = dbc.Row(
     [
         
@@ -260,17 +203,7 @@ content_fourth_row = dbc.Row(
         )
     ], id="grapg_row_2"
 )
-
-
-# In[ ]:
-
-
-CONTENT_STYLE = {
-    'margin-left': '25%',
-    'margin-right': '5%',
-    'padding': '20px 10p'
-}
-
+#group all the rows
 content = html.Div(
     [
         html.H2('Analytics Dashboard Template', style=TEXT_STYLE),
@@ -282,23 +215,17 @@ content = html.Div(
     ],
     style=CONTENT_STYLE
 )
-
-
-# In[ ]:
-
-
+#initialize the dash
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 server = app.server
 app.layout = html.Div([sidebar,content])
 
-
-# In[ ]:
-
-
+#first callback for dropdwon values
 @app.callback(
     # the dependencies refer to elements from the layout using id
     dash.dependencies.Output('price_vs_zone', 'figure'),
     dash.dependencies.Output('heatmap', 'figure'),
+    dash.dependencies.Output('statistic_table_zone', 'children'),
 
     
     
@@ -334,47 +261,30 @@ def update_graph_1(zona):
         heatmap = px.imshow(filtered_df.corr(),text_auto=True)
         table = dbc.Table.from_dataframe(filtered_df.describe()[["Price","Size"]].reset_index(), striped=True, bordered=True, hover=True)
 
-    return scatter_price_size, heatmap, table
-
-
-# In[ ]:
-
-
-@app.callback(
-    # the dependencies refer to elements from the layout using id
    
     
+        
+    return scatter_price_size, heatmap, table
+#second call back for radio buttons
+@app.callback(
     dash.dependencies.Output('price_zone_map', 'srcDoc'),
     dash.dependencies.Output('price_zone_bar', 'figure'),
-    
-        # input 2:
    [
     dash.dependencies.Input('radio_items', 'value')]
-    
     )
-
+#upgrande map and barchart
 def update_graph_2( radio):
     df_filterd = df_zone.sort_values("Price",ascending=False)
     venice_map = open("price_size.html").read()
     barchart = px.bar(df_filterd, x="Zone", y="Price")
-    print(radio)
     df_price_size = pd.DataFrame()
     if (radio=="price/size"):
         df_price_size = df_zone.sort_values("Price/Size",ascending=False)
         venice_map = open("price_size_map.html").read()
         barchart =  px.bar(df_price_size, x="Zone", y="Price/Size")
-    
-        
     return venice_map, barchart
-
-
-# In[ ]:
-
-
+#run the app
 app.run_server()
-
-
-# In[ ]:
 
 
 
