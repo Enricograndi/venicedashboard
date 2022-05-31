@@ -6,15 +6,8 @@
 # In[ ]:
 
 
-import seaborn as sns
 import pandas as pd
-import matplotlib.pyplot as plt
 import plotly.express as px 
-import plotly.graph_objs as go
-import networkx as nx
-import folium
-import geopandas as gpd
-from dash import  dash_table
 import dash
 
 # For interactive components like graphs, dropdowns, or date ranges.
@@ -31,13 +24,11 @@ import pandas as pd
 import plotly.express as px 
 import plotly.graph_objs as go
 
-import dash
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output
 
-import plotly.express as px
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
