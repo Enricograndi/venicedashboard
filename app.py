@@ -1,19 +1,30 @@
+import pandas as pd
+import plotly.express as px 
 import dash
+
 # For interactive components like graphs, dropdowns, or date ranges.
 from dash import dcc
+# For HTML tags
+
 #from dash.dependencies import Input, Output
+
 import pandas as pd
+
 # For graphics
 import plotly.express as px 
 import plotly.graph_objs as go
+
+import dash
 import dash_bootstrap_components as dbc
 from dash import html
 from dash.dependencies import Input, Output
 
 import plotly.express as px
 
+#initialize the dash
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-
+app = Dash(__name__, external_stylesheets=external_stylesheets)
+server = app.server
 
 # # Import data and cleaning
 
@@ -215,9 +226,7 @@ content = html.Div(
     ],
     style=CONTENT_STYLE
 )
-#initialize the dash
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
-server = app.server
+#set layout 
 app.layout = html.Div([sidebar,content])
 
 #first callback for dropdwon values
@@ -283,9 +292,9 @@ def update_graph_2( radio):
         venice_map = open("price_size_map.html").read()
         barchart =  px.bar(df_price_size, x="Zone", y="Price/Size")
     return venice_map, barchart
-#run the app
-app.run_server()
-
+    
+if __name__ == '__main__':
+    app.run_server(debug=True)
 
 
 
