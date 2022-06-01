@@ -17,7 +17,7 @@ idna==3.3
 itsdangerous==2.1.2
 Jinja2==3.1.2
 MarkupSafe==2.1.1
-pandas
+pandas==1.4.2
 plotly==5.8.0
 python-dateutil==1.5
 scipy==1.8.1
