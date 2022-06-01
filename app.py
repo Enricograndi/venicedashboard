@@ -28,49 +28,21 @@ server = app.server
 # # Import data and cleaning
 
 #import data
-df = pd.read_csv("Data/houses_venice_2.csv")
-#remove bad columns
-df = df.drop(columns=["Unnamed: 0"])
-#drop nan value
-df = df.dropna()
-df = df.reset_index(drop=True)
-
-#Clean price data
-df["Price"] = df["Price"].str.replace('.','')
-df["Price"] = df["Price"].str.replace('€','')
-df["Price"] = df["Price"].str.split(' ', expand=True)[1].astype("float")
-#clean size data
-df["Size"] = df["Size"].str.replace('m²','').astype("float")
-#clean floor data
-df["Floor"] = df["Floor"].str.split(' ',expand=True)[0]
-#clean room data
-df["Room"] = df["Room"].str.replace('+','').astype("float")
-#Clean flor data
-df["Floor"] = df["Floor"].str.split(' ',expand=True)[0]
-df["Floor"] = df["Floor"].str.replace('R',"0")
-df["Floor"] = df["Floor"].str.replace('A',"0")
-df["Floor"] = df["Floor"].str.replace('S',"-1")
-df["Floor"] = df["Floor"].str.replace('T',"0").astype("float")
-#reset index
-df = df.reset_index(drop=True)
-#calculate new variables
-df["Price/Size"] = df["Price"]/df["Size"]
-df["Price/Room"] = df["Price"]/df["Room"]
-df["Price/Floor"] = df["Price"]/df["Room"]
-#calculate mean variables by zone
-df_zone = df.groupby("Zone").mean().reset_index()
-#count number of houses
-df_zone["Number_of_house"] = df.groupby("Zone").count().reset_index()["Name"]
-#initialize zone variable for dropdown
+df = pd.read_csv("Data/df_heroku.csv")
+df_zone = pd.read_csv("Data/df_zone_heroku.csv")
 zones = df["Zone"].unique()
-df_zone = df_zone.reset_index()
+
 #initialize heatmap
+global heatmap 
 heatmap = px.imshow(df_zone.corr(),text_auto=True)
 #initialize scatter plot
+global scatter_price_size
 scatter_price_size = px.scatter(df, x="Price", y="Size",color="Zone",log_x=True, size_max=60, trendline="ols")
 #initialize map
+global venice_map
 venice_map = open("asset/price_size.html").read()
 #initialize barchart
+global barchart
 barchart = px.bar(df_zone.sort_values("Price",ascending=False), x="Zone", y="Price",  color="Zone")
 
 
@@ -361,34 +333,24 @@ app.layout = html.Div([sidebar,content])
 # def update_graph(input 1,input 2)
 
 def update_graph_1(zona):
-    filtered_df = df
-    scatter_price_size = px.scatter(df, x="Price", y="Size",color="Zone",
+    #filtered_df = df
+    #scatter_price_size = px.scatter(df, x="Price", y="Size",color="Zone", log_x=True, size_max=60, trendline="ols")
+    #heatmap = px.imshow(df.corr(),text_auto=True)
+    new_filterd_df = pd.DataFrame()
+    for z in zona: 
+        if (z=="all_values"):
+            table = dbc.Table.from_dataframe(df.describe()[["Price","Size"]].reset_index(), striped=True, bordered=True, hover=True)
+            return scatter_price_size, heatmap, table
+        new_filterd_df = pd.concat([new_filterd_df,df[df["Zone"]==z]])
+        scatter_price_size_filterd = px.scatter(new_filterd_df, x="Price", y="Size",color="Zone",
                  log_x=True, size_max=60, trendline="ols")
-    heatmap = px.imshow(df.corr(),text_auto=True)
-    table = dbc.Table.from_dataframe(df.describe()[["Price","Size"]].reset_index(), striped=True, bordered=True, hover=True)
-    
-    if (zona!="all_values"):
-        new_filterd_df = pd.DataFrame()
-        for z in zona: 
-            new_filterd_df = pd.concat([new_filterd_df,df[df["Zone"]==z]])
-            print(zona)
-            
-        scatter_price_size = px.scatter(new_filterd_df, x="Price", y="Size",color="Zone",
-                 log_x=True, size_max=60, trendline="ols")
-        heatmap = px.imshow(new_filterd_df.corr(),text_auto=True)
-        table = dbc.Table.from_dataframe(new_filterd_df.describe()[["Price","Size"]].reset_index(), striped=True, bordered=True, hover=True)
+        heatmap_filtered = px.imshow(new_filterd_df.corr(),text_auto=True)
+        table_filters = dbc.Table.from_dataframe(new_filterd_df.describe()[["Price","Size"]].reset_index(), striped=True, bordered=True, hover=True)
+    return scatter_price_size_filterd, heatmap_filtered, table_filters
+        
 
         
-    if (zona[0]=="all_values"):
-        scatter_price_size = px.scatter(filtered_df, x="Price", y="Size",color="Zone",
-                 log_x=True, size_max=60, trendline="ols")
-        heatmap = px.imshow(filtered_df.corr(),text_auto=True)
-        table = dbc.Table.from_dataframe(filtered_df.describe()[["Price","Size"]].reset_index(), striped=True, bordered=True, hover=True)
 
-   
-    
-        
-    return scatter_price_size, heatmap, table
 #second call back for radio buttons
 @app.callback(
     dash.dependencies.Output('price_zone_map', 'srcDoc'),
@@ -398,14 +360,16 @@ def update_graph_1(zona):
     )
 #upgrande map and barchart
 def update_graph_2( radio):
-    df_filterd = df_zone.sort_values("Price",ascending=False)
-    venice_map = open("asset/price_size.html").read()
-    barchart = px.bar(df_filterd, x="Zone", y="Price",  color="Zone")
+   #df_filterd = df_zone.sort_values("Price",ascending=False)
+    #venice_map = open("asset/price_size.html").read()
+    #barchart = px.bar(df_filterd, x="Zone", y="Price",  color="Zone")
     df_price_size = pd.DataFrame()
     if (radio=="price/size"):
         df_price_size = df_zone.sort_values("Price/Size",ascending=False)
-        venice_map = open("asset/price_size_map.html").read()
-        barchart =  px.bar(df_price_size, x="Zone", y="Price/Size",  color="Zone")
-    return venice_map, barchart
+        venice_map_filterd = open("asset/price_size_map.html").read()
+        barchart_filtered =  px.bar(df_price_size, x="Zone", y="Price/Size",  color="Zone")
+        return venice_map_filterd, barchart_filtered
+    else:
+        return venice_map,barchart
 #run the app
 app.run_server()
