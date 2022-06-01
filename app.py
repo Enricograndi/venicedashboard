@@ -21,10 +21,8 @@ from dash.dependencies import Input, Output
 import plotly.express as px
 import gunicorn                     #whilst your local machine's webserver doesn't need this, Heroku's linux webserver (i.e. dyno) does. I.e. This is your HTTP server
 from whitenoise import WhiteNoise   
-
-#initialize the dash
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-app = Dash(__name__, external_stylesheets=external_stylesheets)
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 server = app.server
 
 # # Import data and cleaning
@@ -227,7 +225,7 @@ content = html.Div(
     ],
     style=CONTENT_STYLE
 )
-#set layout 
+#initialize the dash
 app.layout = html.Div([sidebar,content])
 
 #first callback for dropdwon values
@@ -293,7 +291,7 @@ def update_graph_2( radio):
         venice_map = open("asset/price_size_map.html").read()
         barchart =  px.bar(df_price_size, x="Zone", y="Price/Size")
     return venice_map, barchart
-    
+#run the app
 if __name__ == '__main__':
     app.run_server(debug=False)
 
