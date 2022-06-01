@@ -20,6 +20,8 @@ from dash import html
 from dash.dependencies import Input, Output
 
 import plotly.express as px
+import gunicorn                     #whilst your local machine's webserver doesn't need this, Heroku's linux webserver (i.e. dyno) does. I.e. This is your HTTP server
+from whitenoise import WhiteNoise   
 
 #initialize the dash
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
