@@ -1,25 +1,11 @@
 import pandas as pd
-import plotly.express as px 
 import dash
-
-# For interactive components like graphs, dropdowns, or date ranges.
-from dash import dcc
-# For HTML tags
-
-#from dash.dependencies import Input, Output
-
-import pandas as pd
-
-# For graphics
+from dash import dcc, html
 import plotly.express as px 
 import plotly.graph_objs as go
-
-import dash
 import dash_bootstrap_components as dbc
-from dash import html
 from dash.dependencies import Input, Output
 
-import plotly.express as px
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -59,7 +45,7 @@ SIDEBAR_STYLE = {
     'bottom': 0,
     'width': '20%',
     'padding': '20px 10px',
-    'background-color': '#f8f9fa'
+    'backgroundColor': '#f8f9fa'
 }
 
 CARD_TEXT_STYLE = {
@@ -67,8 +53,8 @@ CARD_TEXT_STYLE = {
     'color': 'black'
 }
 CONTENT_STYLE = {
-    'margin-left': '25%',
-    'margin-right': '5%',
+    'marginLeft': '25%',
+    'marginRight': '5%',
     'padding': '20px 10p'
 }
 
@@ -336,16 +322,16 @@ def update_graph_1(zona):
     #filtered_df = df
     #scatter_price_size = px.scatter(df, x="Price", y="Size",color="Zone", log_x=True, size_max=60, trendline="ols")
     #heatmap = px.imshow(df.corr(),text_auto=True)
-    new_filterd_df = pd.DataFrame()
-    for z in zona: 
-        if (z=="all_values"):
-            table = dbc.Table.from_dataframe(df.describe()[["Price","Size"]].reset_index(), striped=True, bordered=True, hover=True)
-            return scatter_price_size, heatmap, table
-        new_filterd_df = pd.concat([new_filterd_df,df[df["Zone"]==z]])
-        scatter_price_size_filterd = px.scatter(new_filterd_df, x="Price", y="Size",color="Zone",
+    #for z in zona: 
+    if ("all_values" in zona):
+        table = dbc.Table.from_dataframe(df.describe()[["Price","Size"]].reset_index(), striped=True, bordered=True, hover=True)
+        return scatter_price_size, heatmap, table
+    
+    new_filterd_df = df[df["Zone"].isin(zona)]
+    scatter_price_size_filterd = px.scatter(new_filterd_df, x="Price", y="Size",color="Zone",
                  log_x=True, size_max=60, trendline="ols")
-        heatmap_filtered = px.imshow(new_filterd_df.corr(),text_auto=True)
-        table_filters = dbc.Table.from_dataframe(new_filterd_df.describe()[["Price","Size"]].reset_index(), striped=True, bordered=True, hover=True)
+    heatmap_filtered = px.imshow(new_filterd_df.corr(),text_auto=True)
+    table_filters = dbc.Table.from_dataframe(new_filterd_df.describe()[["Price","Size"]].reset_index(), striped=True, bordered=True, hover=True)
     return scatter_price_size_filterd, heatmap_filtered, table_filters
         
 
@@ -360,16 +346,12 @@ def update_graph_1(zona):
     )
 #upgrande map and barchart
 def update_graph_2( radio):
-   #df_filterd = df_zone.sort_values("Price",ascending=False)
-    #venice_map = open("asset/price_size.html").read()
-    #barchart = px.bar(df_filterd, x="Zone", y="Price",  color="Zone")
-    df_price_size = pd.DataFrame()
+   #
     if (radio=="price/size"):
-        df_price_size = df_zone.sort_values("Price/Size",ascending=False)
         venice_map_filterd = open("asset/price_size_map.html").read()
-        barchart_filtered =  px.bar(df_price_size, x="Zone", y="Price/Size",  color="Zone")
+        barchart_filtered =  px.bar(df_zone.sort_values("Price/Size",ascending=False), x="Zone", y="Price/Size",  color="Zone")
         return venice_map_filterd, barchart_filtered
     else:
         return venice_map,barchart
 #run the app
-app.run_server()
+app.run_server(debug=True)
