@@ -71,7 +71,7 @@ heatmap = px.imshow(df_zone.corr(),text_auto=True)
 #initialize scatter plot
 scatter_price_size = px.scatter(df, x="Price", y="Size",color="Zone",log_x=True, size_max=60, trendline="ols")
 #initialize map
-venice_map = open("price_size.html").read()
+venice_map = open("asset/price_size.html").read()
 #initialize barchart
 barchart = px.bar(df_zone.sort_values("Price",ascending=False), x="Zone", y="Price")
 
@@ -285,12 +285,12 @@ def update_graph_1(zona):
 #upgrande map and barchart
 def update_graph_2( radio):
     df_filterd = df_zone.sort_values("Price",ascending=False)
-    venice_map = open("price_size.html").read()
+    venice_map = open("asset/price_size.html").read()
     barchart = px.bar(df_filterd, x="Zone", y="Price")
     df_price_size = pd.DataFrame()
     if (radio=="price/size"):
         df_price_size = df_zone.sort_values("Price/Size",ascending=False)
-        venice_map = open("price_size_map.html").read()
+        venice_map = open("asset/price_size_map.html").read()
         barchart =  px.bar(df_price_size, x="Zone", y="Price/Size")
     return venice_map, barchart
     
